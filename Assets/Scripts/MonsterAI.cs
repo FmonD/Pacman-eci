@@ -1,32 +1,38 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 public class MonsterAI : MonoBehaviour
 {
-    public float moveSpeed = 4f;
     public Transform target;
-
-    private CharacterController controller;
+    private NavMeshAgent agent;
     private DirectionalVisual directionalVisual;
 
     void Awake()
     {
-        controller = GetComponent<CharacterController>();
+        agent = GetComponent<NavMeshAgent>();
         directionalVisual = GetComponent<DirectionalVisual>();
+
+        // PENTING: Untuk project lo, pastiin ini diset begini
+        agent.updateRotation = false;
+
+        // Coba comment baris di bawah kalau monster masih ga mau gerak
+        // agent.updateUpAxis = true; 
     }
 
     void Update()
     {
-        if (target == null) return;
+        if (target == null || agent == null) return;
 
-        Vector3 direction = (target.position - transform.position);
-        direction.y = 0f;
-        direction = direction.normalized;
-
-        controller.Move(direction * moveSpeed * Time.deltaTime);
-
-        if (directionalVisual != null)
+        // Cek apakah agent sudah menempel di NavMesh
+        if (agent.isOnNavMesh)
         {
-            directionalVisual.UpdateVisual(direction);
+            agent.SetDestination(target.position);
+        }
+
+        // Update visual berdasarkan arah jalan
+        if (directionalVisual != null && agent.velocity.magnitude > 0.1f)
+        {
+            directionalVisual.UpdateVisual(agent.velocity.normalized);
         }
     }
 }
